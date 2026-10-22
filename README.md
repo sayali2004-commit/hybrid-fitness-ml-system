@@ -208,7 +208,9 @@ npm i -g vercel
 vercel --prod
 ```
 
-Pick **Flask** when Vercel asks for the framework. The dashboard, the static assets and the `/api` endpoints are all served by the same function. Serverless deployments have a read-only file system, so the service loads the trained model from the bundle and, if it is missing, retrains from `ml/data/fitness_habits.csv` in memory (about a second) instead of failing.
+Pick **Flask** when Vercel asks for the framework, and leave the **Root Directory empty** (the repository root) — the entrypoint, the requirements file and the routing config all live there. If the Root Directory is pointed at a sub-folder such as `ml`, the build fails with `No Flask entrypoint found`.
+
+The dashboard, the static assets and the `/api` endpoints are all served by the same function. Serverless deployments have a read-only file system, so the service loads the trained model from the bundle and, if it is missing, retrains from `ml/data/fitness_habits.csv` in memory (about a second) instead of failing.
 
 ---
 

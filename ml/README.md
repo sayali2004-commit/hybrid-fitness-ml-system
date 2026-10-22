@@ -357,9 +357,15 @@ Common Vercel error and its fix:
 | Error | Cause | Fix |
 | --- | --- | --- |
 | `[FLASK_ENTRYPOINT_NOT_FOUND]` | no Flask app in `app.py` / `index.py` / `server.py` / `main.py` / `wsgi.py` / `asgi.py` (or `src/`, `app/`, `api/`) | already fixed — `app.py` is in the repository |
+| The same error even though `app.py` exists | the project's **Root Directory** is set to a sub-folder (for example `ml`), so the builder looks for `ml/app.py` | Project Settings → General → Root Directory → leave it **empty** (the repository root) |
 | `ModuleNotFoundError: No module named 'ml'` | the project root is not on `sys.path` | `app.py` inserts its own folder into `sys.path` |
-| `No module named 'pandas'` | dependencies not installed | `requirements.txt` must be in the **root** folder |
+| `No module named 'pandas'` | dependencies not installed | `requirements.txt` must be in the **root** folder of the deployed project |
 | The dashboard loads but the ML card says "not reachable" | the API is not on the same origin | the API is served from the same function (`/api/...`) — check that `vercel.json` is present |
+
+> The Root Directory is the setting that trips people up most often: Vercel
+> sometimes pre-fills it with the folder it detected the Python project in.
+> The entrypoint, the requirements file and the routing config all live in the
+> **repository root**, so the Root Directory has to stay empty.
 
 ---
 
