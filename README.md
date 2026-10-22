@@ -53,6 +53,9 @@ Common problems reported by gym users:
 ```
 Fitnes_Model/
 ├── index.html                 # Application shell: all 7 pages + navigation
+├── app.py                     # WSGI entrypoint (Vercel / any WSGI server)
+├── requirements.txt           # Root dependencies — Vercel installs from here
+├── vercel.json                # Vercel build + routing configuration
 ├── server.js                  # Optional zero-dependency static server (Node)
 ├── README.md                  # This file
 ├── assets/
@@ -77,7 +80,7 @@ Fitnes_Model/
     ├── train.py               # Training, evaluation, artifact + metrics output
     ├── predict.py             # Inference for a user profile
     ├── serve.py               # Flask app: static frontend + JSON API
-    ├── tests/test_model.py    # 16 automated tests
+    ├── tests/test_model.py    # 18 automated tests
     ├── data/                  # Raw public CSV + labelled training cohort (1,733 rows)
     └── artifacts/             # model.joblib + metrics.json (generated)
 ```
@@ -96,10 +99,15 @@ Double-click `index.html`. Everything works except the ML card, which shows a "m
 ### Option B — full stack with the hybrid model (recommended)
 ```bash
 cd Fitnes_Model
-pip install -r ml/requirements.txt
+pip install -r requirements.txt
 python -m ml.serve
 ```
 Then open **<http://localhost:5000>**. The Flask service trains the models from `ml/data/fitness_habits.csv` on first start, serves the dashboard and exposes the prediction API.
+
+The same service can be started through the WSGI entrypoint that Vercel uses:
+```bash
+python -m flask --app app run --port 5000
+```
 
 ### Option C — static web server
 ```bash
@@ -182,7 +190,7 @@ Full documentation — data dictionary, preprocessing, metrics and API reference
 
 | Model | Target | Classes | Test accuracy | 5-fold CV |
 | --- | --- | --- | --- | --- |
-| `RandomForestClassifier` (300 trees, balanced) | `habit_category` | 5 | **0.8818** | 0.8656 ± 0.0136 |
+| `RandomForestClassifier` (300 trees, depth 10, balanced) | `habit_category` | 5 | **0.8876** | 0.8656 ± 0.0184 |
 | `KNeighborsClassifier` (k = 9, distance-weighted) | `recommended_category` | 6 | **0.8588** | 0.8390 ± 0.0252 |
 
 Both beat the majority-class baseline (0.36 / 0.35) by more than 45 points. The recommender's top-2 hit rate is 0.948 and its top-3 hit rate 0.968, so the right category is almost always inside the three suggestions shown.
@@ -191,7 +199,20 @@ Both beat the majority-class baseline (0.36 / 0.35) by more than 45 points. The 
 
 ---
 
-## 7. Sample data
+## 7. Deployment on Vercel
+
+The repository is ready for Vercel — `app.py` (Flask entrypoint), `requirements.txt` (root) and `vercel.json` are all included.
+
+```bash
+npm i -g vercel
+vercel --prod
+```
+
+Pick **Flask** when Vercel asks for the framework. The dashboard, the static assets and the `/api` endpoints are all served by the same function. Serverless deployments have a read-only file system, so the service loads the trained model from the bundle and, if it is missing, retrains from `ml/data/fitness_habits.csv` in memory (about a second) instead of failing.
+
+---
+
+## 8. Sample data
 
 The app ships with **clearly-labelled demonstration data** only:
 
@@ -210,7 +231,7 @@ When sample data is active:
 
 ---
 
-## 8. Data storage
+## 9. Data storage
 
 All data lives in the browser under these `localStorage` keys:
 
@@ -226,13 +247,13 @@ Nothing is ever sent anywhere. The optional Python service runs on `127.0.0.1`; 
 
 ---
 
-## 9. Testing
+## 10. Testing
 
 | Suite | Coverage | Result |
 | --- | --- | --- |
 | Logic test | 960 profile combinations (4 goals × 3 levels × 4 equipment types × 5 day counts × 4 session lengths) — verifies every plan produces a valid, equipment-usable, in-budget session with correct rest days | **All passed** |
 | UI test | Full jsdom integration: profile submit → analysis → plan → schedule → checklist persistence → progress logging → charts → delete/undo → sample data → tips → navigation → clear data → **browser reload restores everything from storage** | **All passed, 0 console errors** |
-| Model test (`ml/tests/test_model.py`) | Dataset schema, deliberate missing values, insufficient-data detection, label rules, feature mapping, imputation + scaling, achieved accuracy, "two different profiles → two different classes", every API endpoint, static file serving | **16 passed** |
+| Model test (`ml/tests/test_model.py`) | Dataset schema, deliberate missing values, insufficient-data detection, label rules, feature mapping, imputation + scaling, achieved accuracy, "two different profiles → two different classes", every API endpoint, the Vercel WSGI entrypoint, the read-only (serverless) training path, static file serving | **18 passed** |
 
 ```bash
 python -m pytest ml/tests -q
@@ -240,13 +261,13 @@ python -m pytest ml/tests -q
 
 ---
 
-## 10. Disclaimer
+## 11. Disclaimer
 
 This is an **educational demonstration**. The advice shown is general information, not medical or personalised dietary prescription. The calorie figures are simple rule-based estimates and may be inaccurate for any individual. The habit classification and workout categories come from models trained on a documented cohort whose lifestyle columns are simulated — they describe patterns in that cohort, not measured clinical outcomes. Anyone with a medical condition, an injury, who is pregnant, or who takes regular medication should consult a qualified doctor, physiotherapist or registered dietitian before changing training or diet.
 
 ---
 
-## 11. Future scope
+## 12. Future scope
 
 - Habit heat-map calendar view
 - Export of the full workout plan to PDF / printable format

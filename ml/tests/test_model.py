@@ -303,3 +303,35 @@ def test_static_frontend_is_served(client):
     response = client.get("/")
     assert response.status_code == 200
     assert b"Fitness Habit Analysis" in response.data
+
+
+def test_root_entrypoint_exposes_a_wsgi_app(monkeypatch):
+    """app.py is the entrypoint Vercel looks for — it must expose `app`."""
+    import importlib.util
+
+    monkeypatch.delenv("FHA_ML_READONLY", raising=False)
+    spec = importlib.util.spec_from_file_location(
+        "fha_entrypoint", PROJECT_ROOT / "app.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    assert callable(module.app)
+    with module.app.test_client() as entrypoint_client:
+        response = entrypoint_client.get("/")
+        assert response.status_code == 200
+        assert b"Fitness Habit Analysis" in response.data
+        health = entrypoint_client.get("/api/health")
+        assert health.status_code == 200
+        assert health.get_json()["status"] in ("ok", "insufficient_data")
+
+
+def test_readonly_deployment_trains_in_memory(monkeypatch, tmp_path):
+    """On a read-only file system the model is fitted in memory, not written."""
+    from ml.train import ensure_model
+
+    artifacts, report = ensure_model(quick=True, persist=False)
+    assert report.sufficient
+    assert artifacts is not None
+    assert artifacts["classifier"] is not None
+    assert artifacts["recommender"] is not None

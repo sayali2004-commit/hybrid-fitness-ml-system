@@ -74,7 +74,7 @@ from ml.preprocess import (  # noqa: E402
 
 RF_PARAMS = {
     "n_estimators": 300,
-    "max_depth": None,
+    "max_depth": 10,
     "min_samples_leaf": 2,
     "max_features": "sqrt",
     "class_weight": "balanced",
@@ -162,8 +162,14 @@ def build_recommender_pipeline() -> Pipeline:
 
 def train_models(
     df: pd.DataFrame,
+    quick: bool = False,
 ) -> Tuple[Pipeline, Pipeline, Dict[str, Any], Dict[str, Any]]:
-    """Fit both models on the labelled cohort and return them with metrics."""
+    """Fit both models on the labelled cohort and return them with metrics.
+
+    ``quick=True`` skips the cross-validation pass. It is used when the model
+    has to be fitted on the fly (for example on a read-only serverless file
+    system) where a fast answer matters more than the stability estimate.
+    """
     X = df[RF_FEATURES]
     y_habit = df[HABIT_LABEL].astype(str)
     y_rec = df[RECOMMENDATION_LABEL].astype(str)
@@ -193,17 +199,6 @@ def train_models(
         yr_test, rec_pred, sorted(WORKOUT_CATEGORY_META)
     )
 
-    cv = StratifiedKFold(n_splits=CV_FOLDS, shuffle=True, random_state=RANDOM_STATE)
-    habit_cv = cross_val_score(classifier, X, y_habit, cv=cv, scoring="accuracy", n_jobs=-1)
-    rec_cv = cross_val_score(
-        recommender,
-        df[KNN_NUMERIC_FEATURES + KNN_CATEGORICAL_FEATURES],
-        y_rec,
-        cv=cv,
-        scoring="accuracy",
-        n_jobs=-1,
-    )
-
     importances = classifier.named_steps["clf"].feature_importances_
     names = classifier.named_steps["prep"].get_feature_names_out()
     ranked = sorted(
@@ -215,8 +210,23 @@ def train_models(
         reverse=True,
     )
 
+    if quick:
+        habit_cv = rec_cv = None
+    else:
+        cv = StratifiedKFold(n_splits=CV_FOLDS, shuffle=True, random_state=RANDOM_STATE)
+        habit_cv = cross_val_score(classifier, X, y_habit, cv=cv, scoring="accuracy", n_jobs=-1)
+        rec_cv = cross_val_score(
+            recommender,
+            df[KNN_NUMERIC_FEATURES + KNN_CATEGORICAL_FEATURES],
+            y_rec,
+            cv=cv,
+            scoring="accuracy",
+            n_jobs=-1,
+        )
+
     metrics: Dict[str, Any] = {
         "trainedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "quick": bool(quick),
         "dataset": {
             "rows": int(len(df)),
             "trainRows": int(len(X_train)),
@@ -231,8 +241,8 @@ def train_models(
             "params": {k: v for k, v in RF_PARAMS.items() if k != "n_jobs"},
             "features": RF_FEATURES,
             "metrics": habit_metrics,
-            "cvAccuracyMean": round(float(habit_cv.mean()), 4),
-            "cvAccuracyStd": round(float(habit_cv.std()), 4),
+            "cvAccuracyMean": round(float(habit_cv.mean()), 4) if habit_cv is not None else None,
+            "cvAccuracyStd": round(float(habit_cv.std()), 4) if habit_cv is not None else None,
             "majorityBaseline": _majority_baseline(yh_train, yh_test),
             "topFeatures": ranked[:12],
         },
@@ -241,8 +251,8 @@ def train_models(
             "params": KNN_PARAMS,
             "features": KNN_NUMERIC_FEATURES + KNN_CATEGORICAL_FEATURES,
             "metrics": rec_metrics,
-            "cvAccuracyMean": round(float(rec_cv.mean()), 4),
-            "cvAccuracyStd": round(float(rec_cv.std()), 4),
+            "cvAccuracyMean": round(float(rec_cv.mean()), 4) if rec_cv is not None else None,
+            "cvAccuracyStd": round(float(rec_cv.std()), 4) if rec_cv is not None else None,
             "majorityBaseline": _majority_baseline(yr_train, yr_test),
             "top3HitRate": _top_k_hit_rate(recommender, Xr_test, yr_test, 3),
             "top2HitRate": _top_k_hit_rate(recommender, Xr_test, yr_test, 2),
@@ -268,20 +278,30 @@ def save_artifacts(
     recommender: Pipeline,
     metrics: Dict[str, Any],
     context: Dict[str, Any] | None = None,
-) -> None:
-    target_dir = artifacts_dir()
-    target_dir.mkdir(parents=True, exist_ok=True)
-    joblib.dump(
-        {
-            "classifier": classifier,
-            "recommender": recommender,
-            "metrics": metrics,
-            "context": context or {},
-            "savedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        },
-        model_path(),
-    )
-    metrics_path().write_text(json.dumps(metrics, indent=2), encoding="utf-8")
+) -> bool:
+    """Write the fitted pipelines and the metrics report to disk.
+
+    Returns ``False`` instead of raising when the file system is read-only
+    (serverless deployments) so the caller can keep using the in-memory model.
+    """
+    try:
+        target_dir = artifacts_dir()
+        target_dir.mkdir(parents=True, exist_ok=True)
+        joblib.dump(
+            {
+                "classifier": classifier,
+                "recommender": recommender,
+                "metrics": metrics,
+                "context": context or {},
+                "savedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            },
+            model_path(),
+        )
+        metrics_path().write_text(json.dumps(metrics, indent=2), encoding="utf-8")
+        return True
+    except Exception as exc:  # pragma: no cover - read-only file systems
+        print(f"[ml] could not write the model artifacts: {exc}")
+        return False
 
 
 def load_artifacts() -> Dict[str, Any] | None:
@@ -294,8 +314,17 @@ def load_artifacts() -> Dict[str, Any] | None:
         return None
 
 
-def ensure_model(force: bool = False, data_path: Path | None = None):
-    """Load the trained model, training it when the artifacts are missing/stale."""
+def ensure_model(
+    force: bool = False,
+    data_path: Path | None = None,
+    quick: bool = False,
+    persist: bool = True,
+):
+    """Load the trained model, training it when the artifacts are missing/stale.
+
+    ``quick=True`` skips the cross-validation pass (used on a cold serverless
+    start), ``persist=False`` skips writing the artifacts to disk.
+    """
     df, report = inspect_dataset(data_path)
     if not report.sufficient:
         return None, report
@@ -306,8 +335,9 @@ def ensure_model(force: bool = False, data_path: Path | None = None):
         if saved.get("rows") == report.rows:
             return artifacts, report
 
-    classifier, recommender, metrics, context = train_models(df)
-    save_artifacts(classifier, recommender, metrics, context)
+    classifier, recommender, metrics, context = train_models(df, quick=quick)
+    if persist:
+        save_artifacts(classifier, recommender, metrics, context)
     return {"classifier": classifier, "recommender": recommender, "metrics": metrics, "context": context}, report
 
 

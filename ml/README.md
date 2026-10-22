@@ -164,7 +164,8 @@ Random Forest (habit classifier)
   numeric (15)  → SimpleImputer(median)
   binary  (2)   → SimpleImputer(most_frequent)
   categorical(6)→ SimpleImputer(most_frequent) → OneHotEncoder(handle_unknown="ignore")
-  classifier    → RandomForestClassifier(n_estimators=300, min_samples_leaf=2,
+  classifier    → RandomForestClassifier(n_estimators=300, max_depth=10,
+                                          min_samples_leaf=2,
                                           class_weight="balanced", random_state=42)
 
 KNN (workout recommender)
@@ -194,18 +195,18 @@ Produced by `python -m ml.train` and stored in `ml/artifacts/metrics.json`
 
 | Metric | Value |
 | --- | --- |
-| Test accuracy | **0.8818** |
-| Macro precision / recall / F1 | 0.82 / 0.80 / **0.8033** |
-| Weighted F1 | 0.8758 |
-| 5-fold CV accuracy | **0.8656** (± 0.0136) |
+| Test accuracy | **0.8876** |
+| Macro precision / recall / F1 | 0.83 / 0.82 / **0.8277** |
+| Weighted F1 | 0.8847 |
+| 5-fold CV accuracy | **0.8656** (± 0.0184) |
 | Majority-class baseline | 0.3631 |
 
-Per-class recall: consistent athlete 0.93 · steady improver 0.91 ·
-inconsistent athlete 0.89 · sedentary struggle 0.95 · **overtraining risk 0.29**
+Per-class recall: consistent athlete 0.96 · steady improver 0.90 ·
+inconsistent athlete 0.89 · sedentary struggle 0.95 · **overtraining risk 0.41**
 (only 85 training rows — the rare class, and the weakest prediction).
 
-Most important features: workouts per week (0.151), diet quality (0.130),
-sleep hours (0.130), skipped per week (0.068), daily steps (0.065).
+Most important features: workouts per week (0.168), sleep hours (0.137),
+diet quality (0.135), skipped per week (0.074), daily steps (0.067).
 
 ### KNN — workout category
 
@@ -291,47 +292,97 @@ at a different CSV.
 ## 7. Project layout
 
 ```
-ml/
-├── requirements.txt        # pinned dependencies
-├── config.py               # paths, feature lists, label vocabulary, thresholds
-├── labels.py               # the transparent labelling rules
-├── build_dataset.py        # raw public CSV → labelled training CSV
-├── dataset.py              # loading + validation (insufficient-data messages)
-├── features.py             # browser profile → model feature frame
-├── preprocess.py           # imputation / encoding / scaling pipelines
-├── train.py                # training, evaluation, artifact + metrics output
-├── predict.py              # inference for a user profile
-├── serve.py                # Flask app: static frontend + JSON API
-├── tests/test_model.py     # 16 automated tests
-├── data/
-│   ├── raw/                # cached copy of the public dataset
-│   └── fitness_habits.csv  # the labelled training cohort
-└── artifacts/
-    ├── model.joblib        # fitted pipelines + training context
-    └── metrics.json        # evaluation report
+Fitnes_Model/
+├── app.py                     # WSGI entrypoint (Vercel / any WSGI server)
+├── requirements.txt           # root dependency file — Vercel installs from here
+├── vercel.json                # Vercel build + routing configuration
+├── ml/
+│   ├── requirements.txt       # pinned dependencies
+│   ├── config.py              # paths, feature lists, label vocabulary, thresholds
+│   ├── labels.py              # the transparent labelling rules
+│   ├── build_dataset.py       # raw public CSV → labelled training CSV
+│   ├── dataset.py             # loading + validation (insufficient-data messages)
+│   ├── features.py            # browser profile → model feature frame
+│   ├── preprocess.py          # imputation / encoding / scaling pipelines
+│   ├── train.py               # training, evaluation, artifact + metrics output
+│   ├── predict.py             # inference for a user profile
+│   ├── serve.py               # Flask app: static frontend + JSON API
+│   ├── tests/test_model.py    # 18 automated tests
+│   ├── data/
+│   │   ├── raw/               # cached copy of the public dataset
+│   │   └── fitness_habits.csv # the labelled training cohort
+│   └── artifacts/
+│       ├── model.joblib       # fitted pipelines + training context
+│       └── metrics.json       # evaluation report
 ```
 
 ---
 
-## 8. Tests
+## 8. Deployment on Vercel
+
+Vercel's Python runtime needs three things, all of which are in the repository:
+
+| Requirement | Where it is |
+| --- | --- |
+| a Flask entrypoint at the project root | `app.py` (exposes `app`) |
+| `requirements.txt` at the project root | `requirements.txt` (the `ml/` one is for development) |
+| routing configuration | `vercel.json` |
+
+```bash
+npm i -g vercel          # once
+vercel                   # preview deployment
+vercel --prod            # production deployment
+```
+
+The first time, Vercel asks which framework to use — pick **Flask** (it is
+detected automatically from `app.py` + `requirements.txt`).
+
+What happens on Vercel:
+
+* The whole project (including `ml/data/fitness_habits.csv` and the trained
+  `ml/artifacts/model.joblib`) is bundled into the function.
+* Serverless file systems are read-only, so `app.py` sets
+  `FHA_ML_READONLY=1`: the model is loaded from the bundled artifact and never
+  written back. If the artifact is missing the service simply **retrains from
+  the CSV in memory** (about one second) and keeps serving.
+* `vercel.json` routes every request to the function, so the dashboard, the
+  static assets and `/api/*` are all served by the same Flask app — no extra
+  configuration needed.
+* The very first (cold) request pays for importing pandas + scikit-learn and
+  loading the model, so give it a few seconds. Later requests reuse the warm
+  container.
+
+Common Vercel error and its fix:
+
+| Error | Cause | Fix |
+| --- | --- | --- |
+| `[FLASK_ENTRYPOINT_NOT_FOUND]` | no Flask app in `app.py` / `index.py` / `server.py` / `main.py` / `wsgi.py` / `asgi.py` (or `src/`, `app/`, `api/`) | already fixed — `app.py` is in the repository |
+| `ModuleNotFoundError: No module named 'ml'` | the project root is not on `sys.path` | `app.py` inserts its own folder into `sys.path` |
+| `No module named 'pandas'` | dependencies not installed | `requirements.txt` must be in the **root** folder |
+| The dashboard loads but the ML card says "not reachable" | the API is not on the same origin | the API is served from the same function (`/api/...`) — check that `vercel.json` is present |
+
+---
+
+## 9. Tests
 
 ```bash
 python -m pytest ml/tests -q
 ```
 
 ```
-16 passed in 21.05s
+18 passed in 23.24s
 ```
 
 The suite covers the dataset schema, the deliberate missing values, the
 insufficient-data path, the label rules, the feature mapping, the imputation
 and scaling, the achieved accuracy, that two different profiles produce two
 different habit classes (i.e. the model is not a lookup table), every API
-endpoint and the static file serving.
+endpoint, the WSGI entrypoint used by Vercel, the read-only training path and
+the static file serving.
 
 ---
 
-## 9. Notes and limitations
+## 10. Notes and limitations
 
 * The lifestyle part of the cohort is simulated, because no public dataset
   combines goal, motivation, diet, sleep and tracking habits with physiological

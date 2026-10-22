@@ -35,16 +35,24 @@ from ml.train import ensure_model  # noqa: E402
 
 api = Blueprint("api", __name__, url_prefix="/api")
 
-_STATE = {"artifacts": None, "report": None, "error": None}
+_STATE = {"artifacts": None, "report": None, "error": None, "loaded": False}
+
+#: Set to True on read-only deployments (serverless) so the model is fitted in
+#: memory instead of being written back to the project folder.
+READONLY_DEPLOYMENT = bool(os.environ.get("FHA_ML_READONLY"))
 
 
 # --------------------------------------------------------------------------- #
 # Model lifecycle
 # --------------------------------------------------------------------------- #
-def refresh_model(force: bool = False) -> None:
+def refresh_model(force: bool = False, quick: bool = False) -> None:
     """Load (or rebuild) the model so it matches the CSV on disk."""
     try:
-        artifacts, report = ensure_model(force=force)
+        artifacts, report = ensure_model(
+            force=force,
+            quick=quick or READONLY_DEPLOYMENT,
+            persist=not READONLY_DEPLOYMENT,
+        )
         _STATE["artifacts"] = artifacts
         _STATE["report"] = report
         _STATE["error"] = None
@@ -53,6 +61,8 @@ def refresh_model(force: bool = False) -> None:
         _STATE["error"] = str(exc)
         _, report = inspect_dataset()
         _STATE["report"] = report
+    finally:
+        _STATE["loaded"] = True
 
 
 def _status_payload() -> dict:
@@ -166,6 +176,13 @@ def create_app(refresh: bool = True) -> Flask:
         response.headers["Access-Control-Allow-Headers"] = "Content-Type"
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
         return response
+
+    @app.before_request
+    def ensure_model_loaded():
+        """Fit the model on the first request (serverless friendly)."""
+        if not _STATE["loaded"]:
+            refresh_model()
+        return None
 
     @app.route("/", defaults={"filepath": "index.html"})
     @app.route("/<path:filepath>")

@@ -1,5 +1,6 @@
 {
-  "trainedAt": "2026-10-22T10:36:02+00:00",
+  "trainedAt": "2026-10-22T11:30:41+00:00",
+  "quick": false,
   "dataset": {
     "rows": 1733,
     "trainRows": 1386,
@@ -26,7 +27,7 @@
     "name": "RandomForestClassifier",
     "params": {
       "n_estimators": 300,
-      "max_depth": null,
+      "max_depth": 10,
       "min_samples_leaf": 2,
       "max_features": "sqrt",
       "class_weight": "balanced",
@@ -58,11 +59,11 @@
       "preferred_focus"
     ],
     "metrics": {
-      "accuracy": 0.8818,
-      "precisionMacro": 0.8375,
-      "recallMacro": 0.7946,
-      "f1Macro": 0.8033,
-      "f1Weighted": 0.8758,
+      "accuracy": 0.8876,
+      "precisionMacro": 0.8523,
+      "recallMacro": 0.8225,
+      "f1Macro": 0.8277,
+      "f1Weighted": 0.8847,
       "labels": [
         "consistent_athlete",
         "inconsistent_athlete",
@@ -72,23 +73,23 @@
       ],
       "confusionMatrix": [
         [
-          49,
+          51,
           1,
           0,
           0,
-          3
+          1
         ],
         [
-          1,
+          3,
           100,
           3,
           0,
-          8
+          6
         ],
         [
           0,
-          5,
-          5,
+          3,
+          7,
           1,
           6
         ],
@@ -100,30 +101,30 @@
           0
         ],
         [
-          9,
+          11,
           1,
           0,
           1,
-          115
+          113
         ]
       ],
       "report": {
         "consistent_athlete": {
-          "precision": 0.8166666666666667,
-          "recall": 0.9245283018867925,
-          "f1-score": 0.8672566371681416,
+          "precision": 0.7727272727272727,
+          "recall": 0.9622641509433962,
+          "f1-score": 0.8571428571428571,
           "support": 53.0
         },
         "inconsistent_athlete": {
-          "precision": 0.9259259259259259,
+          "precision": 0.9433962264150944,
           "recall": 0.8928571428571429,
-          "f1-score": 0.9090909090909091,
+          "f1-score": 0.9174311926605505,
           "support": 112.0
         },
         "overtraining_risk": {
-          "precision": 0.625,
-          "recall": 0.29411764705882354,
-          "f1-score": 0.4,
+          "precision": 0.7,
+          "recall": 0.4117647058823529,
+          "f1-score": 0.5185185185185185,
           "support": 17.0
         },
         "sedentary_struggler": {
@@ -133,77 +134,77 @@
           "support": 39.0
         },
         "steady_improver": {
-          "precision": 0.8712121212121212,
-          "recall": 0.9126984126984127,
-          "f1-score": 0.8914728682170543,
+          "precision": 0.8968253968253969,
+          "recall": 0.8968253968253969,
+          "f1-score": 0.8968253968253969,
           "support": 126.0
         },
-        "accuracy": 0.8818443804034583,
+        "accuracy": 0.8876080691642652,
         "macro avg": {
-          "precision": 0.8375045325045324,
-          "recall": 0.794583890643824,
-          "f1-score": 0.8033076726388106,
+          "precision": 0.8523333689371426,
+          "recall": 0.8224858690452475,
+          "f1-score": 0.8277271827730545,
           "support": 347.0
         },
         "weighted avg": {
-          "precision": 0.8771895225065254,
-          "recall": 0.8818443804034583,
-          "f1-score": 0.8758166137851359,
+          "precision": 0.8890919965793546,
+          "recall": 0.8876080691642652,
+          "f1-score": 0.8847137747013484,
           "support": 347.0
         }
       }
     },
     "cvAccuracyMean": 0.8656,
-    "cvAccuracyStd": 0.0136,
+    "cvAccuracyStd": 0.0184,
     "majorityBaseline": 0.3631,
     "topFeatures": [
       {
         "feature": "workouts per week",
-        "importance": 0.15084
-      },
-      {
-        "feature": "diet quality",
-        "importance": 0.13035
+        "importance": 0.1678
       },
       {
         "feature": "sleep hours",
-        "importance": 0.1301
+        "importance": 0.1372
+      },
+      {
+        "feature": "diet quality",
+        "importance": 0.13489
       },
       {
         "feature": "skipped per week",
-        "importance": 0.06823
+        "importance": 0.0742
       },
       {
         "feature": "daily steps",
-        "importance": 0.06511
+        "importance": 0.06674
       },
       {
         "feature": "planned days per week",
-        "importance": 0.05837
+        "importance": 0.05883
       },
       {
         "feature": "motivation",
-        "importance": 0.04195
-      },
-      {
-        "feature": "weight kg",
-        "importance": 0.03257
-      },
-      {
-        "feature": "bmi",
-        "importance": 0.03211
+        "importance": 0.03907
       },
       {
         "feature": "protein meals",
-        "importance": 0.03108
+        "importance": 0.03264
       },
       {
-        "feature": "height cm",
-        "importance": 0.03072
+        "feature": "bmi",
+        "importance": 0.02868
+      },
+      {
+        "feature": "weight kg",
+        "importance": 0.02857
       },
       {
         "feature": "junk food per week",
-        "importance": 0.03051
+        "importance": 0.0274
+      },
+      {
+        "feature": "age",
+        "importance": 0.02722
       }
     ]
   },

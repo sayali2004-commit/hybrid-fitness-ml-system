@@ -6,7 +6,9 @@ __pycache__/
 venv/
 
 # Generated model artifacts — rebuild with:  python -m ml.train
-ml/artifacts/*.joblib
+# (model.joblib is intentionally tracked so a fresh deployment can skip
+#  retraining; the metrics report next to it is tracked as well)
+ml/artifacts/*.tmp
 
 # Development scratch files
 __stat*.html
