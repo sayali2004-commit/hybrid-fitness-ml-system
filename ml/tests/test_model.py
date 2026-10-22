@@ -305,6 +305,17 @@ def test_static_frontend_is_served(client):
     assert b"Fitness Habit Analysis" in response.data
 
 
+def test_retraining_is_refused_on_a_readonly_deployment(client, monkeypatch):
+    from ml import serve
+
+    monkeypatch.setattr(serve, "READONLY_DEPLOYMENT", True)
+    response = client.post("/api/train")
+    assert response.status_code == 403
+    payload = response.get_json()
+    assert payload["status"] == "read_only"
+    assert payload["message"]
+
+
 def test_root_entrypoint_exposes_a_wsgi_app(monkeypatch):
     """app.py is the entrypoint Vercel looks for — it must expose `app`."""
     import importlib.util

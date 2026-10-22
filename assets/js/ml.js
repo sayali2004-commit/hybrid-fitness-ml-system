@@ -179,7 +179,7 @@ const ML = (function () {
       '<span class="ml-meta-item">test accuracy <strong>' + pct(model.classifierAccuracy) + '%</strong> (habit)</span>' +
       '<span class="ml-meta-item">test accuracy <strong>' + pct(model.recommenderAccuracy) + '%</strong> (recommendation)</span>' +
       '<button class="btn btn-ghost btn-sm" id="mlRefresh" type="button">Refresh prediction</button>' +
-      '<button class="btn btn-ghost btn-sm" id="mlRetrain" type="button">Retrain model</button>' +
+      (result.readOnly ? '' : '<button class="btn btn-ghost btn-sm" id="mlRetrain" type="button">Retrain model</button>') +
       '</div>';
 
     if (habitRows.length) {
@@ -240,6 +240,11 @@ const ML = (function () {
     if (status === 'invalid_request') {
       setStatus('Profile incomplete', 'warn');
       notice('Profile incomplete', result.message || 'The profile could not be read.', 'warn');
+      return;
+    }
+    if (status === 'read_only') {
+      setStatus('Model is read-only here', 'warn');
+      notice('Retraining disabled', result.message || 'This deployment ships a pre-trained model.', 'warn');
       return;
     }
     setStatus('Model service unavailable', 'bad');

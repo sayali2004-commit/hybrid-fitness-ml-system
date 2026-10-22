@@ -112,6 +112,7 @@ def _status_payload() -> dict:
     return {
         "status": "ok",
         "message": report.message,
+        "readOnly": READONLY_DEPLOYMENT,
         "dataset": report.to_dict(),
         "model": {
             "classifier": metrics.get("classifier", {}).get("name"),
@@ -192,11 +193,26 @@ def predict():
             )
 
     result["dataset"] = report.to_dict() if report is not None else None
+    result["readOnly"] = READONLY_DEPLOYMENT
     return jsonify(result)
 
 
 @api.post("/train")
 def train():
+    if READONLY_DEPLOYMENT:
+        # Serverless deployments ship a pre-trained model and have no writable
+        # disk: retraining there would only burn CPU on every request.
+        return (
+            jsonify(
+                {
+                    "status": "read_only",
+                    "readOnly": True,
+                    "message": "Retraining is disabled on this deployment. "
+                    "Run `python -m ml.train` locally and commit ml/artifacts/model.joblib.",
+                }
+            ),
+            403,
+        )
     refresh_model(force=True)
     return jsonify(_status_payload())
 
