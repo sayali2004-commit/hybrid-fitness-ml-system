@@ -314,6 +314,25 @@ def load_artifacts() -> Dict[str, Any] | None:
         return None
 
 
+def artifacts_usable(artifacts: Dict[str, Any] | None, df: pd.DataFrame) -> bool:
+    """Check that the stored pipelines can still run in this environment.
+
+    A model that was pickled with a different scikit-learn release cannot be
+    restored reliably, so it is smoke tested here. When it fails the model is
+    simply retrained from the CSV instead of breaking the service.
+    """
+    if not artifacts:
+        return False
+    try:
+        frame = df.head(1)
+        artifacts["classifier"].predict(frame[RF_FEATURES])
+        artifacts["recommender"].predict(frame[KNN_NUMERIC_FEATURES + KNN_CATEGORICAL_FEATURES])
+        return True
+    except Exception as exc:  # pragma: no cover - environment dependent
+        print(f"[ml] the stored model cannot be used here ({exc}); retraining from the CSV")
+        return False
+
+
 def ensure_model(
     force: bool = False,
     data_path: Path | None = None,
@@ -332,7 +351,7 @@ def ensure_model(
     artifacts = load_artifacts()
     if artifacts and not force:
         saved = artifacts.get("metrics", {}).get("dataset", {})
-        if saved.get("rows") == report.rows:
+        if saved.get("rows") == report.rows and artifacts_usable(artifacts, df):
             return artifacts, report
 
     classifier, recommender, metrics, context = train_models(df, quick=quick)

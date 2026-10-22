@@ -335,3 +335,14 @@ def test_readonly_deployment_trains_in_memory(monkeypatch, tmp_path):
     assert artifacts is not None
     assert artifacts["classifier"] is not None
     assert artifacts["recommender"] is not None
+
+
+def test_broken_artifacts_are_detected_and_retrained():
+    """A model that cannot run in this environment must be rebuilt, not used."""
+    from ml.train import artifacts_usable
+
+    df, report = inspect_dataset()
+    assert report.sufficient
+
+    assert artifacts_usable(None, df) is False
+    assert artifacts_usable({"classifier": object(), "recommender": object()}, df) is False

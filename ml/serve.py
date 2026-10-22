@@ -173,10 +173,23 @@ def predict():
     try:
         result = predict_profile(profile, artifacts)
     except Exception as exc:  # pragma: no cover - defensive
-        return (
-            jsonify({"status": "error", "message": f"Prediction failed: {exc}"}),
-            500,
-        )
+        # The stored model may have been created with a different library
+        # release — retrain once from the CSV and try again.
+        refresh_model(force=True, quick=True)
+        artifacts = _STATE.get("artifacts")
+        if artifacts is not None:
+            try:
+                result = predict_profile(profile, artifacts)
+            except Exception as exc:
+                return (
+                    jsonify({"status": "error", "message": f"Prediction failed: {exc}"}),
+                    500,
+                )
+        else:
+            return (
+                jsonify({"status": "error", "message": f"Prediction failed: {exc}"}),
+                500,
+            )
 
     result["dataset"] = report.to_dict() if report is not None else None
     return jsonify(result)

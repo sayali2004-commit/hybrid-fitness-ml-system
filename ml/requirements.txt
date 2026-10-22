@@ -1,11 +1,15 @@
 # Hybrid Fitness Intelligence Model — dependencies
 # Install with:  pip install -r ml/requirements.txt
+#
+# The versions are pinned to the ones the model artifacts were created with:
+# an unpickled scikit-learn estimator must run on the same release, otherwise
+# the fitted pipeline cannot be restored.
 
-pandas>=2.0
-scikit-learn>=1.3
-numpy>=1.24
-joblib>=1.3
-Flask>=3.0
+pandas==2.3.3
+scikit-learn==1.7.2
+numpy==2.3.5
+joblib==1.5.2
+Flask==3.1.2
 
 # test-suite only
-pytest>=7.0
+pytest==8.4.2
