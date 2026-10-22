@@ -35,6 +35,32 @@ from ml.train import ensure_model  # noqa: E402
 
 api = Blueprint("api", __name__, url_prefix="/api")
 
+#: File types the web interface is allowed to load. Everything else (Python
+#: source, the trained model, the training CSV) stays off the public server.
+ALLOWED_STATIC_EXTENSIONS = {
+    ".html",
+    ".css",
+    ".js",
+    ".json",
+    ".svg",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".webp",
+    ".ico",
+    ".woff",
+    ".woff2",
+    ".txt",
+    ".map",
+}
+
+#: Only these file types may be served from the project root itself.
+ALLOWED_ROOT_EXTENSIONS = {".html", ".ico", ".png", ".svg", ".webmanifest"}
+
+#: Folder whose contents are part of the web interface.
+PUBLIC_FOLDER = "assets"
+
 _STATE = {"artifacts": None, "report": None, "error": None, "loaded": False}
 
 #: Set to True on read-only deployments (serverless) so the model is fitted in
@@ -187,11 +213,28 @@ def create_app(refresh: bool = True) -> Flask:
     @app.route("/", defaults={"filepath": "index.html"})
     @app.route("/<path:filepath>")
     def serve_static(filepath: str):
+        """Serve the front-end assets.
+
+        Only the file types that belong to the web interface are allowed —
+        source files, the trained model and the training data must never be
+        reachable over HTTP.
+        """
         target = (PROJECT_ROOT / filepath).resolve()
         try:
-            target.relative_to(PROJECT_ROOT.resolve())
+            relative = target.relative_to(PROJECT_ROOT.resolve())
         except ValueError:
             return jsonify({"status": "error", "message": "Invalid path."}), 403
+
+        extension = target.suffix.lower()
+        if len(relative.parts) == 1:
+            allowed = extension in ALLOWED_ROOT_EXTENSIONS
+        elif relative.parts[0] == PUBLIC_FOLDER:
+            allowed = extension in ALLOWED_STATIC_EXTENSIONS
+        else:
+            allowed = False
+
+        if not allowed:
+            return jsonify({"status": "error", "message": "Not found."}), 404
         if not target.is_file():
             return jsonify({"status": "error", "message": "Not found."}), 404
         return send_from_directory(PROJECT_ROOT, filepath)
