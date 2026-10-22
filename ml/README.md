@@ -360,6 +360,9 @@ Common Vercel error and its fix:
 | The same error even though `app.py` exists | the project's **Root Directory** is set to a sub-folder (for example `ml`), so the builder looks for `ml/app.py` | Project Settings → General → Root Directory → leave it **empty** (the repository root) |
 | `ModuleNotFoundError: No module named 'ml'` | the project root is not on `sys.path` | `app.py` inserts its own folder into `sys.path` |
 | `No module named 'pandas'` | dependencies not installed | `requirements.txt` must be in the **root** folder of the deployed project |
+| `Failed to run "uv lock ...": No 'project' table found in pyproject.toml` | Vercel's `uv` installer needs a PEP 621 `[project]` table | do not ship a `pyproject.toml` that only contains `[tool.vercel]` — `app.py` is already an accepted entrypoint name |
+| `'SimpleImputer' object has no attribute '_fill_dtype'` | the model was pickled with a different scikit-learn release than the one installed at runtime | the versions are pinned in `requirements.txt`; the service also smoke tests the stored model and retrains in memory when it cannot run |
+| `POST /api/train` returns `403 read_only` | the hosted deployment is read-only | expected — retrain locally with `python -m ml.train` and commit `ml/artifacts/model.joblib` |
 | The dashboard loads but the ML card says "not reachable" | the API is not on the same origin | the API is served from the same function (`/api/...`) — check that `vercel.json` is present |
 
 > The Root Directory is the setting that trips people up most often: Vercel
