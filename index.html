@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitness Habit Analysis &amp; Personalized Workout Recommendation System</title>
+<meta name="description" content="A browser-based fitness habit analysis and personalized workout recommendation system for gym users. College field project.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127947;</text></svg>">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ============ VERTICAL SIDEBAR MENU ============ -->
+  <aside class="app-sidebar" id="appSidebar" aria-label="Sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-mark" aria-hidden="true">FH</div>
+      <div class="brand-text">
+        <h1>Fitness Habit Analysis</h1>
+        <p>Personalized Workout Recommendation System for Gym Users</p>
+      </div>
+      <button class="sidebar-close" id="btnSidebarClose" type="button" aria-label="Close menu">&#10005;</button>
+    </div>
+
+    <nav class="app-nav" aria-label="Main navigation">
+      <button class="nav-link is-active" data-page="dashboard" type="button">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg></span>
+        <span class="nav-label">Dashboard</span>
+      </button>
+      <button class="nav-link" data-page="profile" type="button">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <span class="nav-label">My Profile</span>
+      </button>
+      <button class="nav-link" data-page="analysis" type="button">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><rect x="7" y="12" width="3" height="5" rx="1"/><rect x="11.5" y="7" width="3" height="10" rx="1"/><rect x="16" y="10" width="3" height="7" rx="1"/></svg></span>
+        <span class="nav-label">Habit Analysis</span>
+      </button>
+      <button class="nav-link" data-page="plan" type="button">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/></svg></span>
+        <span class="nav-label">Workout Plan</span>
+      </button>
+      <button class="nav-link" data-page="schedule" type="button">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/></svg></span>
+        <span class="nav-label">Weekly Schedule</span>
+      </button>
+      <button class="nav-link" data-page="progress" type="button">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span>
+        <span class="nav-label">Progress</span>
+      </button>
+      <button class="nav-link" data-page="tips" type="button">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4"/><path d="M12 2.5a7.5 7.5 0 0 0-4.5 13.6V18h9v-1.9A7.5 7.5 0 0 0 12 2.5z"/></svg></span>
+        <span class="nav-label">Lifestyle Tips</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <span id="sampleBadge" class="badge badge-sample" hidden>SAMPLE DATA MODE</span>
+      <button id="btnTheme" class="btn btn-ghost btn-sm" type="button" title="Light theme only (demo)">&#9728; Light theme</button>
+    </div>
+  </aside>
+
+  <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+
+  <div class="app-body">
+    <header class="app-topbar">
+      <button class="menu-toggle" id="btnMenu" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="appSidebar">
+        <span class="menu-toggle-bars" aria-hidden="true"></span>
+      </button>
+      <span class="topbar-title" id="topbarTitle">Dashboard</span>
+    </header>
+
+<main class="container app-main">
+
+  <!-- ================= DASHBOARD ================= -->
+  <section id="page-dashboard" class="page is-active">
+    <div class="page-head">
+      <h2>Dashboard</h2>
+      <p>Your complete fitness snapshot: analysis score, key problems and the recommended solutions.</p>
+    </div>
+
+    <div id="dashboardEmpty" class="card empty-state" hidden>
+      <h3>Welcome! Let's set up your fitness profile</h3>
+      <p>Fill in the <strong>My Profile</strong> form with your current habits. The system will analyse them with rule-based logic, identify your problems, and generate a personalised workout plan.</p>
+      <button class="btn btn-primary" data-goto="profile" type="button">Set up my profile</button>
+      <button class="btn btn-ghost" data-goto="progress" type="button">Explore with sample data</button>
+    </div>
+
+    <div id="dashboardContent" hidden>
+      <!-- Summary strip -->
+      <div class="stat-grid" id="dashStatGrid"></div>
+
+      <!-- Overall score + habit breakdown -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head">
+            <h3>Overall Fitness Habit Score</h3>
+            <span class="card-hint">Weighted across 6 habit dimensions</span>
+          </div>
+          <div class="gauge-wrap">
+            <div id="dashGauge" class="gauge-host"></div>
+            <div class="gauge-side" id="dashGaugeSide"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Habit Breakdown</h3>
+            <span class="card-hint">Each bar is scored 0–100</span>
+          </div>
+          <div id="dashBreakdown" class="breakdown"></div>
+        </div>
+      </div>
+
+      <!-- Problems + solutions -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head">
+            <h3>Identified Problems</h3>
+            <span class="card-hint" id="dashProblemCount"></span>
+          </div>
+          <div id="dashProblems" class="issue-list"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Recommended Solutions</h3>
+            <span class="card-hint">Prioritised by impact</span>
+          </div>
+          <div id="dashSolutions" class="solution-list"></div>
+        </div>
+      </div>
+
+      <!-- Weekly plan preview + targets -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head">
+            <h3>Your Week at a Glance</h3>
+            <span class="card-hint" id="dashPlanGoal"></span>
+          </div>
+          <div id="dashWeekStrip" class="week-strip"></div>
+          <button class="btn btn-ghost btn-sm mt" data-goto="schedule" type="button">Open full schedule →</button>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Personalised Daily Targets</h3>
+            <span class="card-hint">Rule-based estimates from your profile</span>
+          </div>
+          <div id="dashTargets" class="target-grid"></div>
+        </div>
+      </div>
+
+      <!-- Hybrid Fitness Intelligence Model -->
+      <div class="card ml-card" id="mlCard">
+        <div class="card-head">
+          <h3>Hybrid Fitness Intelligence</h3>
+          <span class="card-hint" id="mlStatus">Random Forest + KNN prediction</span>
+        </div>
+        <div id="mlPanel" class="ml-panel" data-state="idle">
+          <div class="ml-loading"><span class="ml-spinner" aria-hidden="true"></span><span>Connecting to the local model service …</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PROFILE ================= -->
+  <section id="page-profile" class="page">
+    <div class="page-head">
+      <h2>My Profile &amp; Habit Check-in</h2>
+      <p>These answers replace the questionnaire. Everything is stored only in your own browser (localStorage).</p>
+    </div>
+
+    <form id="profileForm" class="card form-card" novalidate>
+      <div class="form-section">
+        <h3 class="form-section-title">1. About you</h3>
+        <div class="form-grid">
+          <label class="field">
+            <span class="field-label">Name / Alias <em>(optional)</em></span>
+            <input type="text" name="name" placeholder="e.g. Alex" autocomplete="off">
+          </label>
+          <label class="field">
+            <span class="field-label">Age</span>
+            <input type="number" name="age" min="13" max="85" step="1" required>
+          </label>
+          <label class="field">
+            <span class="field-label">Sex (for energy estimate)</span>
+            <select name="sex">
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Prefer not to say</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Height (cm)</span>
+            <input type="number" name="height" min="120" max="230" step="1" required>
+          </label>
+          <label class="field">
+            <span class="field-label">Current weight (kg)</span>
+            <input type="number" name="weight" min="30" max="250" step="0.1" required>
+          </label>
+          <label class="field">
+            <span class="field-label">Target weight (kg) <em>(optional)</em></span>
+            <input type="number" name="targetWeight" min="30" max="250" step="0.1" placeholder="e.g. 72">
+          </label>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section-title">2. Goal &amp; experience</h3>
+        <div class="form-grid">
+          <label class="field">
+            <span class="field-label">Primary fitness goal</span>
+            <select name="goal">
+              <option value="loss">Lose body fat</option>
+              <option value="muscle">Build muscle</option>
+              <option value="endurance">Improve endurance / stamina</option>
+              <option value="health">General fitness &amp; health</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Training experience</span>
+            <select name="experience">
+              <option value="beginner">Beginner (0–6 months)</option>
+              <option value="intermediate">Intermediate (6–24 months)</option>
+              <option value="advanced">Advanced (2+ years)</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Training days per week</span>
+            <select name="daysPerWeek">
+              <option value="2">2 days</option>
+              <option value="3" selected>3 days</option>
+              <option value="4">4 days</option>
+              <option value="5">5 days</option>
+              <option value="6">6 days</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Minutes per session</span>
+            <select name="sessionMinutes">
+              <option value="30">30 minutes</option>
+              <option value="45" selected>45 minutes</option>
+              <option value="60">60 minutes</option>
+              <option value="75">75 minutes</option>
+              <option value="90">90 minutes</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Equipment available</span>
+            <select name="equipment">
+              <option value="full_gym">Full gym (barbells, machines, cables)</option>
+              <option value="basic_gym">Basic gym (dumbbells + machines)</option>
+              <option value="home">Home (dumbbells / resistance bands)</option>
+              <option value="outdoor">Outdoor / bodyweight only</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Preferred training style <em>(optional, used by the ML recommender)</em></span>
+            <select name="preference">
+              <option value="auto">No preference — decide from my goal</option>
+              <option value="strength">Strength &amp; muscle building</option>
+              <option value="cardio">Cardio &amp; endurance</option>
+              <option value="hiit">HIIT &amp; metabolic circuits</option>
+              <option value="mobility">Mobility, core &amp; recovery</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Daily activity level</span>
+            <select name="activityLevel">
+              <option value="sedentary">Sedentary (desk job, little movement)</option>
+              <option value="light" selected>Lightly active (some walking)</option>
+              <option value="moderate">Moderately active (on feet often)</option>
+              <option value="active">Very active (physical job)</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section-title">3. Current habit check-in <em>(average of the last 4 weeks)</em></h3>
+        <div class="form-grid">
+          <label class="field">
+            <span class="field-label">Workouts actually completed per week</span>
+            <input type="number" name="workoutsPerWeek" min="0" max="7" step="1" value="2" required>
+          </label>
+          <label class="field">
+            <span class="field-label">Sessions you skip per week</span>
+            <input type="number" name="skippedPerWeek" min="0" max="14" step="1" value="1" required>
+          </label>
+          <label class="field">
+            <span class="field-label">Diet quality self-rating (1 = poor, 10 = excellent)</span>
+            <input type="range" name="dietQuality" min="1" max="10" step="1" value="5">
+            <span class="range-out" data-out="dietQuality">5</span>
+          </label>
+          <label class="field">
+            <span class="field-label">Meals per day with a solid protein source</span>
+            <input type="number" name="proteinMeals" min="0" max="6" step="1" value="2" required>
+          </label>
+          <label class="field">
+            <span class="field-label">Junk food / sugary drinks per week</span>
+            <input type="number" name="junkFoodPerWeek" min="0" max="21" step="1" value="4" required>
+          </label>
+          <label class="field">
+            <span class="field-label">Water intake (glasses, ~250 ml each)</span>
+            <input type="number" name="waterGlasses" min="0" max="20" step="1" value="5" required>
+          </label>
+          <label class="field">
+            <span class="field-label">Average sleep per night (hours)</span>
+            <input type="number" name="sleepHours" min="3" max="12" step="0.5" value="6.5" required>
+          </label>
+          <label class="field">
+            <span class="field-label">Average daily steps</span>
+            <input type="number" name="steps" min="0" max="40000" step="100" value="5000" required>
+          </label>
+          <label class="field">
+            <span class="field-label">Motivation to train (1 = very low, 10 = very high)</span>
+            <input type="range" name="motivation" min="1" max="10" step="1" value="5">
+            <span class="range-out" data-out="motivation">5</span>
+          </label>
+          <label class="field field-check">
+            <input type="checkbox" name="screenBeforeBed">
+            <span>I use my phone/TV in the hour before bed</span>
+          </label>
+          <label class="field field-check">
+            <input type="checkbox" name="tracksProgress">
+            <span>I record my workouts, weight or meals somewhere</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save &amp; analyse my habits</button>
+        <button type="button" class="btn btn-ghost" id="btnResetProfile">Reset profile</button>
+        <span class="form-status" id="profileStatus" role="status"></span>
+      </div>
+    </form>
+  </section>
+
+  <!-- ================= ANALYSIS ================= -->
+  <section id="page-analysis" class="page">
+    <div class="page-head">
+      <h2>Fitness Habit Analysis</h2>
+      <p>Six habit dimensions are scored with transparent rules. Every problem is matched with a concrete improvement suggestion.</p>
+    </div>
+    <div id="analysisEmpty" class="card empty-state" hidden>
+      <h3>No profile yet</h3>
+      <p>Complete the <strong>My Profile</strong> form first so the analysis engine has data to work with.</p>
+      <button class="btn btn-primary" data-goto="profile" type="button">Go to My Profile</button>
+    </div>
+    <div id="analysisContent" hidden>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><h3>Dimension Scores</h3><span class="card-hint">0 = very poor, 100 = excellent</span></div>
+          <div id="analysisDimensions" class="breakdown breakdown-lg"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Score Trend</h3><span class="card-hint">Snapshot of each dimension</span></div>
+          <div id="analysisChart" class="chart-host"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Problem Identification</h3>
+          <span class="card-hint" id="analysisSummary"></span>
+        </div>
+        <div id="analysisProblems" class="issue-list issue-list-lg"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Improvement Suggestions</h3>
+          <span class="card-hint">Personalised rule-based actions</span>
+        </div>
+        <div id="analysisSuggestions" class="solution-list solution-list-lg"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>How the analysis works</h3>
+          <span class="card-hint">Transparent, rule-based — no guessing</span>
+        </div>
+        <div id="analysisRules" class="rules-grid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PLAN ================= -->
+  <section id="page-plan" class="page">
+    <div class="page-head">
+      <h2>Personalised Workout Plan</h2>
+      <p>Generated from your goal, experience level, available days and equipment.</p>
+    </div>
+    <div id="planEmpty" class="card empty-state" hidden>
+      <h3>No plan yet</h3>
+      <p>Set up your profile and the system will generate a full workout plan with sets, reps, rest and coaching cues.</p>
+      <button class="btn btn-primary" data-goto="profile" type="button">Go to My Profile</button>
+    </div>
+    <div id="planContent" hidden>
+      <div id="planHeader" class="plan-header"></div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><h3>Training split &amp; weekly structure</h3></div>
+          <div id="planSplit" class="split-grid"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Volume, progression &amp; recovery rules</h3></div>
+          <div id="planRules" class="rule-list"></div>
+        </div>
+      </div>
+      <div id="planSessions"></div>
+    </div>
+  </section>
+
+  <!-- ================= SCHEDULE ================= -->
+  <section id="page-schedule" class="page">
+    <div class="page-head">
+      <h2>Weekly Workout Schedule</h2>
+      <p>Workout days, rest days and daily targets arranged across a 7-day week.</p>
+    </div>
+    <div id="scheduleEmpty" class="card empty-state" hidden>
+      <h3>No schedule yet</h3>
+      <p>Generate your plan first — the schedule is built from the same plan data.</p>
+      <button class="btn btn-primary" data-goto="profile" type="button">Go to My Profile</button>
+    </div>
+    <div id="scheduleContent" hidden>
+      <div class="card">
+        <div class="card-head">
+          <h3>Seven-Day Schedule</h3>
+          <span class="card-hint" id="scheduleHint"></span>
+        </div>
+        <div id="scheduleGrid" class="schedule-grid"></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><h3>Rest Day Guidance</h3></div>
+          <div id="scheduleRest" class="rest-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Daily Habit Checklist</h3></div>
+          <div id="scheduleChecklist" class="checklist"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PROGRESS ================= -->
+  <section id="page-progress" class="page">
+    <div class="page-head">
+      <h2>Fitness Progress Tracking</h2>
+      <p>Log your daily numbers and watch simple charts build the bigger picture.</p>
+    </div>
+
+    <div id="sampleBanner" class="banner banner-sample" hidden>
+      <div>
+        <strong>⚠ SAMPLE DATA IS LOADED</strong>
+        <p>The entries below are clearly-labelled demonstration data for a college field project. They are not your real results.</p>
+      </div>
+      <div class="banner-actions">
+        <button class="btn btn-ghost btn-sm" id="btnLoadSample" type="button">Reload sample data</button>
+        <button class="btn btn-danger btn-sm" id="btnClearSample" type="button">Remove sample data</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Log Today's Check-in</h3><span class="card-hint">Saved in your browser only</span></div>
+      <form id="logForm" class="log-form">
+        <label class="field">
+          <span class="field-label">Date</span>
+          <input type="date" name="date" required>
+        </label>
+        <label class="field">
+          <span class="field-label">Weight (kg)</span>
+          <input type="number" name="weight" min="30" max="250" step="0.1" placeholder="e.g. 74.2">
+        </label>
+        <label class="field">
+          <span class="field-label">Workouts done</span>
+          <input type="number" name="workouts" min="0" max="5" step="1" placeholder="0">
+        </label>
+        <label class="field">
+          <span class="field-label">Water (glasses)</span>
+          <input type="number" name="water" min="0" max="25" step="1" placeholder="8">
+        </label>
+        <label class="field">
+          <span class="field-label">Sleep (hours)</span>
+          <input type="number" name="sleep" min="0" max="14" step="0.5" placeholder="7.5">
+        </label>
+        <label class="field">
+          <span class="field-label">Steps</span>
+          <input type="number" name="steps" min="0" max="40000" step="100" placeholder="8000">
+        </label>
+        <label class="field">
+          <span class="field-label">Mood (1–5)</span>
+          <input type="number" name="mood" min="1" max="5" step="1" placeholder="4">
+        </label>
+        <label class="field">
+          <span class="field-label">Notes <em>(optional)</em></span>
+          <input type="text" name="note" placeholder="e.g. felt strong on squats" autocomplete="off">
+        </label>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save entry</button>
+          <button type="button" class="btn btn-ghost" id="btnUndoLog">Undo last</button>
+          <span class="form-status" id="logStatus" role="status"></span>
+        </div>
+      </form>
+    </div>
+
+    <div id="progressStats" class="stat-grid"></div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><h3>Weight Trend</h3><span class="card-hint">kg over time</span></div>
+        <div id="chartWeight" class="chart-host"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Workouts per Week</h3><span class="card-hint">completed vs planned</span></div>
+        <div id="chartWorkouts" class="chart-host"></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><h3>Hydration vs Target</h3><span class="card-hint">weekly average, glasses/day</span></div>
+        <div id="chartHabits" class="chart-host"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Sleep vs Target</h3><span class="card-hint">weekly average, hours/night</span></div>
+        <div id="chartSleep" class="chart-host"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Training Adherence</h3><span class="card-hint">planned vs completed sessions per week</span></div>
+      <div id="chartAdherence" class="chart-host"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3>Logged Entries</h3>
+        <span class="card-hint" id="entryCount"></span>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table" id="logTable">
+          <thead>
+            <tr>
+              <th>Date</th><th>Weight</th><th>Workouts</th><th>Water</th>
+              <th>Sleep</th><th>Steps</th><th>Mood</th><th>Notes</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="logTableBody"></tbody>
+        </table>
+      </div>
+      <div class="table-actions">
+        <button class="btn btn-ghost btn-sm" id="btnExportCsv" type="button">Export CSV</button>
+        <button class="btn btn-ghost btn-sm" id="btnExportJson" type="button">Export JSON</button>
+        <button class="btn btn-danger btn-sm" id="btnClearAll" type="button">Clear all data</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TIPS ================= -->
+  <section id="page-tips" class="page">
+    <div class="page-head">
+      <h2>Lifestyle Tips</h2>
+      <p>General diet, hydration, sleep and training guidance — safe, sustainable habits.</p>
+    </div>
+
+    <div class="card tip-of-day-card">
+      <div class="card-head"><h3>Tip of the Day</h3><span class="card-hint" id="tipDate"></span></div>
+      <p id="tipOfDay" class="tip-of-day"></p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><h3>Diet &amp; Nutrition</h3></div>
+        <div id="tipsDiet" class="tip-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Hydration</h3></div>
+        <div id="tipsWater" class="tip-list"></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><h3>Sleep &amp; Recovery</h3></div>
+        <div id="tipsSleep" class="tip-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Fitness &amp; Training</h3></div>
+        <div id="tipsTraining" class="tip-list"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Personalised Reminders For You</h3><span class="card-hint">Derived from your habit analysis</span></div>
+      <div id="tipsPersonal" class="tip-list tip-list-lg"></div>
+    </div>
+
+    <div class="card disclaimer-card">
+      <h3>Disclaimer</h3>
+      <p>This project is an educational demonstration. The advice shown is general information, not medical or personalised dietary prescription. If you have a medical condition, are pregnant, are managing an injury, or take regular medication, please consult a qualified doctor, physiotherapist or registered dietitian before changing your training or diet. The calorie figures are simple estimates and may be inaccurate for you personally.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="app-footer">
+  <div class="container">
+    <p><strong>Fitness Habit Analysis &amp; Personalized Workout Recommendation System</strong> — College field project.</p>
+    <p>Your profile and progress data stay in your browser via localStorage. The optional Hybrid Fitness Intelligence Model runs on a local Python service and is trained from a labelled CSV in this project — nothing is sent anywhere.</p>
+  </div>
+</footer>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/storage.js"></script>
+<script src="assets/js/engine.js"></script>
+<script src="assets/js/charts.js"></script>
+<script src="assets/js/ml.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

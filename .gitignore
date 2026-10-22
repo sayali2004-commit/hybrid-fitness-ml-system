@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Generated model artifacts — rebuild with:  python -m ml.train
+ml/artifacts/*.joblib
+
+# Development scratch files
+__stat*.html
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

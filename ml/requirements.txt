@@ -1,0 +1,11 @@
+# Hybrid Fitness Intelligence Model — dependencies
+# Install with:  pip install -r ml/requirements.txt
+
+pandas>=2.0
+scikit-learn>=1.3
+numpy>=1.24
+joblib>=1.3
+Flask>=3.0
+
+# test-suite only
+pytest>=7.0
