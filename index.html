@@ -48,6 +48,10 @@
         <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span>
         <span class="nav-label">Progress</span>
       </button>
+      <button class="nav-link" data-page="report" type="button">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 8h8M8 12h8M8 16h4"/></svg></span>
+        <span class="nav-label">Report</span>
+      </button>
       <button class="nav-link" data-page="tips" type="button">
         <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4"/><path d="M12 2.5a7.5 7.5 0 0 0-4.5 13.6V18h9v-1.9A7.5 7.5 0 0 0 12 2.5z"/></svg></span>
         <span class="nav-label">Lifestyle Tips</span>
@@ -559,6 +563,77 @@
     </div>
   </section>
 
+  <!-- ================= REPORT ================= -->
+  <section id="page-report" class="page">
+    <div class="page-head">
+      <h2>Fitness Report</h2>
+      <p>A graphical year-end report: score trend, adherence, habit dimensions and training split.</p>
+    </div>
+
+    <div class="banner banner-sample">
+      <div>
+        <strong>DEMO REPORT - FAKE DATA</strong>
+        <p>Every number, chart and table on this page is fictional sample data created to demonstrate the report
+          layout. Nothing here is measured from a real person, and nothing is read from your own check-ins.</p>
+      </div>
+      <div class="banner-actions">
+        <span class="badge badge-sample">ILLUSTRATIVE FIGURES ONLY</span>
+      </div>
+    </div>
+
+    <div id="reportStats" class="stat-grid"></div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><h3>Overall Habit Score</h3><span class="card-hint">demo gauge</span></div>
+        <div id="chartReportGauge" class="chart-host"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Habit Score Trend</h3><span class="card-hint">12 months, demo</span></div>
+        <div id="chartReportTrend" class="chart-host"></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><h3>Planned vs Completed Sessions</h3><span class="card-hint">last 8 weeks, demo</span></div>
+        <div id="chartReportWeeks" class="chart-host"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Habit Dimensions</h3><span class="card-hint">score out of 100, demo</span></div>
+        <div id="chartReportDims" class="chart-host"></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><h3>Training Split</h3><span class="card-hint">sessions by type, demo</span></div>
+        <div id="chartReportSplit" class="chart-host"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Daily Steps</h3><span class="card-hint">monthly average, demo</span></div>
+        <div id="chartReportSteps" class="chart-host"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3>Monthly Summary</h3>
+        <span class="card-hint">fictional sample rows</span>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Month</th><th>Workouts</th><th>Avg sleep</th><th>Water / day</th><th>Weight</th><th>Habit score</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <!-- ================= TIPS ================= -->
   <section id="page-tips" class="page">
     <div class="page-head">
@@ -620,6 +695,7 @@
 <script src="assets/js/engine.js"></script>
 <script src="assets/js/charts.js"></script>
 <script src="assets/js/ml.js"></script>
+<script src="assets/js/report.js"></script>
 <script src="assets/js/app.js"></script>
 </body>
 </html>

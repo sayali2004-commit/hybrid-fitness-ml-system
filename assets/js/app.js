@@ -45,7 +45,7 @@
   /* -------------------------------------------------------------------
      Navigation
      ------------------------------------------------------------------- */
-  const PAGE_IDS = ['dashboard', 'profile', 'analysis', 'plan', 'schedule', 'progress', 'tips'];
+  const PAGE_IDS = ['dashboard', 'profile', 'analysis', 'plan', 'schedule', 'progress', 'report', 'tips'];
 
   function openSidebar() {
     const sidebar = $('#appSidebar');
@@ -88,6 +88,14 @@
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (pageId === 'progress') renderProgress();
+    if (pageId === 'report') renderReport();
+  }
+
+  /* -------------------------------------------------------------------
+     Illustrated demo report (all figures are fictional sample data)
+     ------------------------------------------------------------------- */
+  function renderReport() {
+    if (window.Report && typeof Report.render === 'function') Report.render();
   }
 
   /* -------------------------------------------------------------------
@@ -898,6 +906,7 @@
     renderPlan();
     renderSchedule();
     renderProgress();
+    renderReport();
     renderTips();
     updateSampleBadge();
   }

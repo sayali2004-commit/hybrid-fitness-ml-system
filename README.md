@@ -46,13 +46,19 @@ Common problems reported by gym users:
 7. **Hybrid Fitness Intelligence Model (machine learning)**
    A Random Forest classifier predicts the trainee's **fitness habit category** (consistent athlete, steady improver, inconsistent athlete, sedentary struggle, overtraining risk) and a KNN recommender ranks **workout categories** from the goal, training frequency, experience, session length and preferences. The prediction, the class probabilities and the ranked categories are shown on the dashboard with charts — and the panel honestly reports when the service is offline or the training data is insufficient.
 
+8. **Graphical report page**
+   A dedicated Report page with a year-end style overview: score gauge, 12-month score trend, planned versus
+   completed sessions, habit dimension breakdown, training split donut, monthly steps and a summary table.
+   Every figure on that page is clearly-labelled **fictional demo data** (banner, per-card hints and per-row
+   Demo tags) and is never mixed with the user's own log.
+
 ---
 
 ## 3. Project structure
 
 ```
 Fitnes_Model/
-├── index.html                 # Application shell: all 7 pages + navigation
+├── index.html                 # Application shell: all 8 pages + navigation
 ├── app.py                     # WSGI entrypoint (Vercel / any WSGI server)
 ├── requirements.txt           # Root dependencies — Vercel installs from here
 ├── vercel.json                # Vercel build + routing configuration
@@ -67,6 +73,7 @@ Fitnes_Model/
 │       ├── engine.js          # Rule-based analysis + plan/schedule generation (the "brain")
 │       ├── charts.js          # Dependency-free SVG charts (line, bar, gauge, horizontal bars)
 │       ├── ml.js              # Hybrid model client: API calls + dashboard panel rendering
+│       ├── report.js              # Illustrated demo report: fictional dataset + charts
 │       └── app.js             # UI rendering, navigation, forms, events
 └── ml/                        # Hybrid Fitness Intelligence Model (Python)
     ├── README.md              # Setup, data dictionary, metrics, API reference
@@ -120,7 +127,7 @@ Requires a modern browser (Chrome, Edge, Firefox, Safari). No build step either 
 
 ### Deep links
 Each page has its own URL hash, so you can link straight to one screen:
-`index.html#dashboard`, `#profile`, `#analysis`, `#plan`, `#schedule`, `#progress`, `#tips`.
+`index.html#dashboard`, `#profile`, `#analysis`, `#plan`, `#schedule`, `#progress`, `#report`, `#tips`.
 
 ### For a live demo
 Open the browser console on any page and use the small public API:
