@@ -769,3 +769,12 @@ em { font-style: normal; color: var(--text-muted); font-weight: 500; }
   .page { display: block !important; }
   .card { break-inside: avoid; box-shadow: none; }
 }
+
+/* Inline feedback note under the sidebar theme button */
+.sidebar-note {
+  display: block;
+  font-size: .7rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+  max-width: 15rem;
+}

@@ -87,8 +87,8 @@
       window.location.hash = pageId;
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (pageId === 'progress') renderProgress();
-    if (pageId === 'report') renderReport();
+    if (pageId === 'progress') safeRender(renderProgress);
+    if (pageId === 'report') safeRender(renderReport);
   }
 
   /* -------------------------------------------------------------------
@@ -566,7 +566,7 @@
       'Completed vs ' + sum.plannedPerWeek + ' planned sessions', sum.adherenceAvg === null ? 'warn' : sum.adherenceAvg >= 75 ? 'good' : 'warn'));
     stats.push(statCard('Avg water', sum.avgWater !== null ? sum.avgWater + ' glasses' : '—',
       t ? 'Target ' + t.waterGlasses + ' glasses' : 'Set a profile for targets',
-      sum.avgWater === null ? 'warn' : (sum.avgWater >= t.waterGlasses ? 'good' : 'warn')));
+      sum.avgWater === null || !t ? 'warn' : (sum.avgWater >= t.waterGlasses ? 'good' : 'warn')));
     stats.push(statCard('Avg sleep', sum.avgSleep !== null ? sum.avgSleep + ' h' : '—',
       t ? 'Target ' + t.sleep + ' h' : 'Set a profile for targets',
       sum.avgSleep === null ? 'warn' : (sum.avgSleep >= 7 ? 'good' : 'warn')));
@@ -783,6 +783,8 @@
           '"' + String(l.note || '').replace(/"/g, '""') + '"', l.sample ? 'yes' : 'no'].join(',');
       });
       download('fitness-progress.csv', header.join(',') + '\n' + rows.join('\n'), 'text/csv');
+      status.textContent = 'Downloaded fitness-progress.csv (' + State.logs.length + ' entries).';
+      status.className = 'form-status is-ok';
     });
 
     $('#btnExportJson').addEventListener('click', function () {
@@ -794,6 +796,8 @@
         logs: State.logs
       };
       download('fitness-progress.json', JSON.stringify(payload, null, 2), 'application/json');
+      status.textContent = 'Downloaded fitness-progress.json (profile + ' + State.logs.length + ' entries).';
+      status.className = 'form-status is-ok';
     });
   }
 
@@ -901,14 +905,21 @@
      Global rendering
      ------------------------------------------------------------------- */
   function renderAll() {
-    renderDashboard();
-    renderAnalysis();
-    renderPlan();
-    renderSchedule();
-    renderProgress();
-    renderReport();
-    renderTips();
-    updateSampleBadge();
+    [renderDashboard, renderAnalysis, renderPlan, renderSchedule, renderProgress, renderReport, renderTips]
+      .forEach(safeRender);
+    safeRender(updateSampleBadge);
+  }
+
+  /* Run a single renderer. A failure inside one page must never stop the
+     rest of the application from rendering - otherwise a page comes up
+     empty and the buttons look broken. The error is still printed to the
+     console so it can be found during development. */
+  function safeRender(fn) {
+    try {
+      fn();
+    } catch (err) {
+      if (window.console && console.error) console.error('[render] ' + (fn.name || 'block'), err);
+    }
   }
 
   function updateSampleBadge() {
@@ -949,8 +960,15 @@
 
     /* Decorative theme button (the project intentionally uses a light theme) */
     $('#btnTheme').addEventListener('click', function () {
-      this.textContent = '☀ Light theme';
       this.title = 'This project uses a fixed, clean light theme.';
+      let note = document.getElementById('themeNote');
+      if (!note) {
+        note = document.createElement('span');
+        note.id = 'themeNote';
+        note.className = 'sidebar-note';
+        this.parentNode.appendChild(note);
+      }
+      note.textContent = 'Light theme is fixed in this project - there is nothing to switch.';
     });
 
     bindProfileForm();
